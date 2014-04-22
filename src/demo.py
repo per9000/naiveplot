@@ -6,6 +6,7 @@ Demo for NaivePlot
 from math import sin, cos, pi
 from naiveplot import Point, Line, Func, ParaFunc, Curve, NaivePlot
 
+
 def heartx(t):
     return 16*(sin(t)**3)
 
@@ -24,7 +25,7 @@ def curvey(s):
 
 if __name__ == '__main__':
     print "Demo Plot 1"
-    plot = NaivePlot(xmin = -3.5, xmax = 3.3, ymin = -3.3, ymax = 2.7)
+    plot = NaivePlot(xmin=-3.5, xmax=3.3, ymin=-3.3, ymax=2.7)
     c1 = Curve(Func(lambda x: 1-x/2), -pi, pi, 0.02)
     c2 = Curve(ParaFunc(lambda t: sin(2*t)-2,
                         lambda t: 2*cos(t)),
@@ -42,7 +43,6 @@ if __name__ == '__main__':
         plot.add_curve(Point(p,  p), 'X')
     print plot
 
-
     print "Demo Plot 2"
     heart = NaivePlot()
     pf1 = ParaFunc(heartx, hearty)
@@ -58,7 +58,6 @@ if __name__ == '__main__':
     print heart
     heart.zoom(10, 12, 10, 12)
     print heart
-
 
     f = open('swepop.csv', 'r')
     lines = f.read().split('\n')
@@ -87,14 +86,13 @@ if __name__ == '__main__':
         eplot.fit_curve(bpoint)
         eplot.fit_curve(dpoint)
 
-    for million in xrange(0,10):
+    for million in xrange(0, 10):
         pplot.add_curve(Point(pplot._xmin, million*1E6), str(million))
     for k in xrange(25000, 200000, 25000):
         eplot.add_curve(Point(eplot._xmin, k), '>')
         eplot.add_curve(Point(eplot._xmax, k), '<')
     print pplot
     print eplot
-
 
     print "Another Example - Pentagram"
     circ = ParaFunc(lambda t: 4+3*sin(t), lambda t: 4+3*cos(t))
@@ -107,4 +105,3 @@ if __name__ == '__main__':
     for line in lines:
         pentagram.add_curve(Curve(line, 0.0, 1.0, 0.01), '.')
     print pentagram
-

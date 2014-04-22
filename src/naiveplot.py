@@ -3,6 +3,7 @@
 NaivePlot - A very naive plotting library for the console
 """
 
+
 class Point:
     """Just a point
 
@@ -30,13 +31,11 @@ class Point:
         self._done = False
         return
 
-
     def __iter__(self):
         """I am an iterator
         """
         self._done = False
         return self
-
 
     def next(self):
         """Get one element and no more
@@ -46,12 +45,10 @@ class Point:
         self._done = True
         return self
 
-
     def __cmp__(self, other):
         """Compare
         """
         return abs(self.x.__cmp__(other.x)) + abs(self.y.__cmp__(other.y))
-
 
     def __str__(self):
         """Get string
@@ -77,7 +74,6 @@ class ParaFunc:
         self._f = f
         self._g = g
         return
-
 
     def __call__(self, t):
         """Get the value"""
@@ -135,7 +131,6 @@ class Rectangle(ParaFunc):
                         2
         """
 
-
     def overlap(self, other):
         """Check if two rectangles have overlap.
         """
@@ -147,7 +142,6 @@ class Rectangle(ParaFunc):
 
         return True
 
-
     def __init__(self, A, B):
         """Provide two points
         """
@@ -156,47 +150,43 @@ class Rectangle(ParaFunc):
         C = Point(self._B.x, self._A.y)
         D = Point(self._A.x, self._B.y)
         self._bottom = Line(self._A, C)
-        self._right  = Line(C, self._B)
-        self._top    = Line(self._B, D)
-        self._left   = Line(D, self._A)
+        self._right = Line(C, self._B)
+        self._top = Line(self._B, D)
+        self._left = Line(D, self._A)
         return
-
 
     def __cmp__(self, other):
         """Compare
         """
         return abs(self._A.__cmp__(other._A)) + abs(self._B.__cmp__(other._B))
 
-
     def __str__(self):
         """Get string
         """
         return "(%s, %s)" % (str(self._A), str(self._B))
-
 
     def _f(self, s):
         """X values.
         """
         if 0.00 <= s <= 0.25:
             return self._bottom._f(s*4)
-        if 0.25  < s <= 0.50:
+        if 0.25 < s <= 0.50:
             return self._right._f(s*4-1)
-        if 0.50  < s <= 0.75:
+        if 0.50 < s <= 0.75:
             return self._top._f(s*4-2)
-        if 0.75  < s <= 1.00:
+        if 0.75 < s <= 1.00:
             return self._left._f(s*4-3)
-
 
     def _g(self, s):
         """Y values.
         """
         if 0.00 <= s <= 0.25:
             return self._bottom._g(s*4)
-        if 0.25  < s <= 0.50:
+        if 0.25 < s <= 0.50:
             return self._right._g(s*4-1)
-        if 0.50  < s <= 0.75:
+        if 0.50 < s <= 0.75:
             return self._top._g(s*4-2)
-        if 0.75  < s <= 1.00:
+        if 0.75 < s <= 1.00:
             return self._left._g(s*4-3)
 
 
@@ -285,14 +275,12 @@ class Line(ParaFunc):
         ParaFunc.__init__(self, f, g)
         return
 
-
     def has_point(self, C, eps=0.0001):
         """Check if a point is on the line
         """
         s = (C.x - self._A.x) * (self._A.x - self._B.x) / self._B.x
         t = (C.y - self._A.y) * (self._A.y - self._B.y) / self._B.y
         return abs(C.y - self._g(t)) < eps
-
 
     def __str__(self):
         """String representation
@@ -357,13 +345,11 @@ class Curve:
         self._t = tmin - tgap
         return
 
-
     def __iter__(self):
         """I am an iterator
         """
         self._t = self._tmin - self._tgap
         return self
-
 
     def next(self):
         """Get the next point
@@ -420,7 +406,7 @@ class NaivePlot:
     """
 
     def __init__(self, cols=79, rows=23, xmin=-1.1, xmax=2.1, ymin=-1.1,
-                 ymax=1.1, bg = ' ', refs=True):
+                 ymax=1.1, bg=' ', refs=True):
         """Default CTOR makes a panel
         """
         self._cols = cols
@@ -435,8 +421,7 @@ class NaivePlot:
         self._refs = refs
         return
 
-
-    def zoom(self, xmin = None, xmax = None, ymin = None, ymax = None):
+    def zoom(self, xmin=None, xmax=None, ymin=None, ymax=None):
         """Reduce viewport
         """
         if xmin is not None:
@@ -449,7 +434,6 @@ class NaivePlot:
             self._ymax = ymax
         return
 
-
     def set_size(self, cols, rows):
         """Set number of columns and rows
         """
@@ -457,13 +441,11 @@ class NaivePlot:
         self._rows = rows
         return
 
-
     def add_curve(self, curve, cross):
         """Add a curve to the plot
         """
         self._curves.append((curve, cross))
         return
-
 
     def fit_curve(self, curve):
         """Adapt max/min for x/y of plot to match curve
@@ -474,7 +456,6 @@ class NaivePlot:
             self._ymin = min(self._ymin, p.y)
             self._ymax = max(self._ymax, p.y)
         return
-
 
     def add_axis(self):
         """Add axis
@@ -492,13 +473,11 @@ class NaivePlot:
         self.add_curve(Point(self._xmax, 0), '-')
         return
 
-
     def add_origo(self):
         """Just insert origo
         """
         self.add_curve(Point(0, 0), '+')
         return
-
 
     def add_axis_edges(self):
         """Add the points to the x and y axises.
@@ -506,7 +485,6 @@ class NaivePlot:
         self.add_curve(Point(0, self._ymax), '^')
         self.add_curve(Point(self._xmax, 0), '>')
         return
-
 
     def add_ref_values(self):
         """Insert coordinates like (0, 1), (0, 2), ...
@@ -536,14 +514,12 @@ class NaivePlot:
                     self.add_curve(Point(value, 0), nick)
         return
 
-
     def get_coordinates(self, xval, yval):
         """Get index of row, col instead of float values
         """
         x = int((self._cols-1)*(xval - self._xmin) / (self._xmax - self._xmin))
         y = int((self._rows-1)*(yval - self._ymin) / (self._ymax - self._ymin))
         return (x, y)
-
 
     def __str__(self):
         """Make string representation
@@ -560,7 +536,7 @@ class NaivePlot:
         self.add_axis_edges()
 
         output = "%s, %sx%s\n" % (self.__class__.__name__,
-                                  self._cols, self._rows )
+                                  self._cols, self._rows)
 
         for (curve, cross) in self._curves:
             for point in curve:
@@ -573,7 +549,6 @@ class NaivePlot:
         for line in plot:
             output += "".join(line) + "\n"
         return output.rstrip()
-
 
 
 if __name__ == '__main__':

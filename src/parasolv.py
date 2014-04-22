@@ -4,6 +4,7 @@ Where is the intersection between two parametric curves?
 
 from naiveplot import NaivePlot
 
+
 class Curve:
     """A curve has two equations, a starting and an end point.
     """
@@ -20,7 +21,6 @@ class Curve:
         """
         return (self.funcx(t), self.funcy(t))
 
-
     def cuts_origo(self, tmin, tmax):
         """True if the curve seems to cut origo diagonally.
         """
@@ -33,7 +33,6 @@ class Curve:
 
         if not (ymin < 0 < ymax or ymax < 0 < ymin):
             return False
-
 
     def get_values(self, tmin, tmax, tgap):
         """Get values for the curve from tmin to tmax with a step size of tgap.
@@ -57,7 +56,6 @@ class ParaSolver:
         self.c2 = c2
         return
 
-
     def get_line(self, xmin, ymin, xmax, ymax):
         """Get tuple with (slope, yintercept)
         """
@@ -71,7 +69,6 @@ class ParaSolver:
         (x1, y1) = self.c1.get_value(t1)
         (x2, y2) = self.c2.get_value(t2)
         return (x1-x2)**2 + (y1-y2)**2
-
 
     def iterate(self, tmin, tmax, smin, smax):
         """True if the curves seems to have an intersection
@@ -92,12 +89,14 @@ class ParaSolver:
 def heartx(t):
     return 16*(sin(t)**3)
 
+
 def hearty(t):
     return 13*cos(t) - 5*cos(2*t) - 2*cos(3*t) - cos(4*t)
 
 
 def curvex(s):
     return s
+
 
 def curvey(s):
     return s - 8*cos(0.1*s) ** 3 + 0.003*s**2
@@ -119,13 +118,13 @@ if __name__ == '__main__':
     points.append(c2.get_value(smin))
     points.append(c2.get_value(smax))
 
-    # get an overview ov the problem
+    # get an overview of the problem
     plot = NaivePlot()
     plot.plotparafunc(c1.funcx, c1.funcy, -pi, pi, 0.01, 'o')
     plot.plotparafunc(c2.funcx, c2.funcy, -20, 20, 0.01, 'x')
 
     # enter parasolber
-    ps = ParaSolver(c1,c2)
+    ps = ParaSolver(c1, c2)
     (s, t) = ps.iterate(tmin, tmax, smin, smax)
     ipoints = list()
     ipoints.append(c1.get_value(s))
