@@ -3,6 +3,15 @@
 NaivePlot - A very naive plotting library for the console
 """
 
+COLORS = True
+
+try:
+    from colorama import init
+    from termcolor import colored
+    init()
+except ImportError:
+    COLORS = False
+
 
 class Point:
     """Just a point
@@ -441,10 +450,10 @@ class NaivePlot:
         self._rows = rows
         return
 
-    def add_curve(self, curve, cross):
+    def add_curve(self, curve, cross, color=None):
         """Add a curve to the plot
         """
-        self._curves.append((curve, cross))
+        self._curves.append((curve, cross, color))
         return
 
     def fit_curve(self, curve):
@@ -538,12 +547,15 @@ class NaivePlot:
         output = "%s, %sx%s\n" % (self.__class__.__name__,
                                   self._cols, self._rows)
 
-        for (curve, cross) in self._curves:
+        for (curve, cross, color) in self._curves:
             for point in curve:
                 if (self._xmin <= point.x <= self._xmax) and \
                         (self._ymin <= point.y <= self._ymax):
                     (x, y) = self.get_coordinates(point.x, point.y)
-                    plot[y][x] = cross
+                    if COLORS and color is not None:
+                        plot[y][x] = colored(cross, color)
+                    else:
+                        plot[y][x] = cross
 
         plot.reverse()
         for line in plot:

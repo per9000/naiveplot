@@ -20,7 +20,7 @@ def curvex(s):
 
 
 def curvey(s):
-    return s - 8*cos(0.1*s) ** 3 + 0.003*s**2
+    return 0.7*s - 7*cos(0.3*s) ** 2
 
 
 if __name__ == '__main__':
@@ -47,11 +47,11 @@ if __name__ == '__main__':
     heart = NaivePlot()
     pf1 = ParaFunc(heartx, hearty)
     c1 = Curve(pf1, -pi, pi, 0.001)
-    heart.add_curve(c1, 'o')
+    heart.add_curve(c1, 'o', 'red')
     heart.fit_curve(c1)
 
     pf2 = ParaFunc(curvex, curvey)
-    heart.add_curve(Curve(pf2, -20, 20, 0.01), 'x')
+    heart.add_curve(Curve(pf2, -20, 20, 0.01), 'x', 'white')
 
     print heart
     heart.zoom(-1, 17, -1, 17)
