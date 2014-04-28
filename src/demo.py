@@ -8,18 +8,22 @@ from naiveplot import Point, Line, Func, ParaFunc, Curve, NaivePlot
 
 
 def heartx(t):
+    """x part of heart plot"""
     return 16*(sin(t)**3)
 
 
 def hearty(t):
+    """x part of heart plot"""
     return 13*cos(t) - 5*cos(2*t) - 2*cos(3*t) - cos(4*t)
 
 
 def curvex(s):
+    """x part of a curve"""
     return s
 
 
 def curvey(s):
+    """y part of a curve"""
     return 0.7*s - 7*cos(0.3*s) ** 2
 
 
@@ -40,7 +44,7 @@ if __name__ == '__main__':
 
     for p in [1, -1, 2, -2]:
         plot.add_curve(Point(p, -p), 'X')
-        plot.add_curve(Point(p,  p), 'X')
+        plot.add_curve(Point(p, p), 'X')
     print plot
 
     print "Demo Plot 2"
@@ -59,6 +63,7 @@ if __name__ == '__main__':
     heart.zoom(10, 12, 10, 12)
     print heart
 
+    print "Swedish Population Data"
     f = open('swepop.csv', 'r')
     lines = f.read().split('\n')
     f.close()
@@ -86,11 +91,6 @@ if __name__ == '__main__':
         eplot.fit_curve(bpoint)
         eplot.fit_curve(dpoint)
 
-    for million in xrange(0, 10):
-        pplot.add_curve(Point(pplot._xmin, million*1E6), str(million))
-    for k in xrange(25000, 200000, 25000):
-        eplot.add_curve(Point(eplot._xmin, k), '>')
-        eplot.add_curve(Point(eplot._xmax, k), '<')
     print pplot
     print eplot
 
@@ -103,5 +103,5 @@ if __name__ == '__main__':
     pentagram.add_curve(circle, '.')
     pentagram.fit_curve(circle)
     for line in lines:
-        pentagram.add_curve(Curve(line, 0.0, 1.0, 0.01), '.')
+        pentagram.add_curve(Curve(line, 0.0, 1.0, 0.01), '.', 'red')
     print pentagram
