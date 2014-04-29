@@ -2,50 +2,10 @@
 Where is the intersection between two parametric curves?
 """
 
-from naiveplot import NaivePlot
+from naiveplot import ParaFunc, NaivePlot, Curve
 
 
-class Curve:
-    """A curve has two equations, a starting and an end point.
-    """
-
-    def __init__(self, funcx, funcy):
-        """Give me two functions and start/stop values
-        """
-        self.funcx = funcx
-        self.funcy = funcy
-        return
-
-    def get_value(self, t):
-        """Get the point for a given t
-        """
-        return (self.funcx(t), self.funcy(t))
-
-    def cuts_origo(self, tmin, tmax):
-        """True if the curve seems to cut origo diagonally.
-        """
-        (xmin, ymin) = (self.funcx(tmin), self.funcy(tmin))
-        (xmax, ymax) = (self.funcx(tmax), self.funcy(tmax))
-
-        # both x and y have to change sign
-        if not (xmin < 0 < xmax or xmax < 0 < xmin):
-            return False
-
-        if not (ymin < 0 < ymax or ymax < 0 < ymin):
-            return False
-
-    def get_values(self, tmin, tmax, tgap):
-        """Get values for the curve from tmin to tmax with a step size of tgap.
-        """
-        t = tmin
-        output = list()
-        while t < tmax:
-            t += tgap
-            output.append(self.get_value(t))
-        return output
-
-
-class ParaSolver:
+class ParaSolver(object):
     """The class that will find the intersection
     """
 
@@ -63,12 +23,19 @@ class ParaSolver:
         intercept = (ymin+ymax)/2 - slope*(xmin+xmax)/2
         return (slope, intercept)
 
-    def get_delta_square(self, t1, t2):
-        """Get the distance between two points
+    def has_intersection(self, pair1, pair2):
+        """True if the lines between points in pair1 and pair2 cross
         """
-        (x1, y1) = self.c1.get_value(t1)
-        (x2, y2) = self.c2.get_value(t2)
-        return (x1-x2)**2 + (y1-y2)**2
+        #TODO: implement me
+        print "%s %s" % (pair1, pair2)
+        return
+
+    def get_delta_square(self, t1, t2):
+        """Get the distance between two points, squared
+        """
+        p1 = self.c1(t1)
+        p2 = self.c2(t2)
+        return (p1.x-p2.x)**2 + (p1.y-p2.y)**2
 
     def iterate(self, tmin, tmax, smin, smax):
         """True if the curves seems to have an intersection
@@ -83,55 +50,50 @@ class ParaSolver:
 
         deltas = [self.get_delta_square(v[0], v[1]) for v in values]
         idx = deltas.index(min(deltas))
+
+        # TODO: find the smallest delta with intersection
+        _ = self.get_line(tmin, tmax, smin, smax)
+
         return values[idx]
 
 
-def heartx(t):
-    return 16*(sin(t)**3)
-
-
-def hearty(t):
-    return 13*cos(t) - 5*cos(2*t) - 2*cos(3*t) - cos(4*t)
-
-
-def curvex(s):
-    return s
-
-
-def curvey(s):
-    return s - 8*cos(0.1*s) ** 3 + 0.003*s**2
-
-
 if __name__ == '__main__':
-    from math import sin, cos, pi
+    from math import pi
+    from demo import heartx, hearty, curvex, curvey
 
     # the curves
-    c1 = Curve(heartx, hearty)
-    c2 = Curve(curvex, curvey)
+    pf1 = ParaFunc(heartx, hearty)
+    pf2 = ParaFunc(curvex, curvey)
+    curve1 = Curve(pf1, -pi, pi, 0.01)
+    curve2 = Curve(pf2, -20, 20, 0.01)
 
     # starting values for later
     points = list()
-    (tmin, tmax) = (18*pi/60,  26*pi/60)
-    (smin, smax) = (9.22, 13.88)
-    points.append(c1.get_value(tmin))
-    points.append(c1.get_value(tmax))
-    points.append(c2.get_value(smin))
-    points.append(c2.get_value(smax))
+    (my_tmin, my_tmax) = (pi/4, pi/2)
+    points.append(pf1(my_tmin))
+    points.append(pf1(my_tmax))
+    (my_smin, my_smax) = (9.22, 13.88)
+    points.append(pf2(my_smin))
+    points.append(pf2(my_smax))
 
     # get an overview of the problem
     plot = NaivePlot()
-    plot.plotparafunc(c1.funcx, c1.funcy, -pi, pi, 0.01, 'o')
-    plot.plotparafunc(c2.funcx, c2.funcy, -20, 20, 0.01, 'x')
+    plot.add_curve(curve1, 'o')
+    plot.add_curve(curve2, 'x')
 
-    # enter parasolber
-    ps = ParaSolver(c1, c2)
-    (s, t) = ps.iterate(tmin, tmax, smin, smax)
+    # enter parasolver
+    ps = ParaSolver(pf1, pf2)
+    (s, t) = ps.iterate(my_tmin, my_tmax, my_smin, my_smax)
     ipoints = list()
-    ipoints.append(c1.get_value(s))
-    ipoints.append(c2.get_value(t))
+    ipoints.append(pf1(s))
+    ipoints.append(pf2(t))
 
-    plot.plotvalues([p[0] for p in points], [p[1] for p in points], 'P')
-    plot.plotvalues([p[0] for p in ipoints], [p[1] for p in ipoints], 'R')
+    for point in points:
+        plot.add_curve(point, 'A', 'white')
+    for point in ipoints:
+        plot.add_curve(point, 'B', 'red')
+
+    (s, t) = ps.iterate(my_tmin, my_tmax, my_smin, my_smax)
 
     plot.zoom(-1, 17, -1, 17)
 

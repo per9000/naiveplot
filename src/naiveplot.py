@@ -13,7 +13,7 @@ except ImportError:
     COLORS = False
 
 
-class Point:
+class Point(object):
     """Just a point
 
     You can create it and check the value
@@ -65,7 +65,7 @@ class Point:
         return str((self.x, self.y))
 
 
-class ParaFunc:
+class ParaFunc(object):
     """Parametric Function.
 
     Let's make a circle and ensure that the angle pi gives us (-1,0):
@@ -154,6 +154,7 @@ class Rectangle(ParaFunc):
     def __init__(self, A, B):
         """Provide two points
         """
+        ParaFunc.__init__(self, self._my_f, self._my_g)
         self._A = Point(min(A.x, B.x), min(A.y, B.y))
         self._B = Point(max(A.x, B.x), max(A.y, B.y))
         C = Point(self._B.x, self._A.y)
@@ -174,7 +175,7 @@ class Rectangle(ParaFunc):
         """
         return "(%s, %s)" % (str(self._A), str(self._B))
 
-    def _f(self, s):
+    def _my_f(self, s):
         """X values.
         """
         if 0.00 <= s <= 0.25:
@@ -186,7 +187,7 @@ class Rectangle(ParaFunc):
         if 0.75 < s <= 1.00:
             return self._left._f(s*4-3)
 
-    def _g(self, s):
+    def _my_g(self, s):
         """Y values.
         """
         if 0.00 <= s <= 0.25:
@@ -287,7 +288,8 @@ class Line(ParaFunc):
     def has_point(self, C, eps=0.0001):
         """Check if a point is on the line
         """
-        s = (C.x - self._A.x) * (self._A.x - self._B.x) / self._B.x
+        # TODO: is s used or not?
+        #s = (C.x - self._A.x) * (self._A.x - self._B.x) / self._B.x
         t = (C.y - self._A.y) * (self._A.y - self._B.y) / self._B.y
         return abs(C.y - self._g(t)) < eps
 
@@ -333,7 +335,7 @@ class Histogram(Line):
         return
 
 
-class Curve:
+class Curve(object):
     """A curve is a function evaluated in certain points.
         >>> f = Func(lambda x: x+2)
         >>> c = Curve(f, 0, 9, 1)
@@ -370,7 +372,7 @@ class Curve:
             return self._pf(self._t)
 
 
-class NaivePlot:
+class NaivePlot(object):
     """A plotter
 
     Two simple straignt lines
@@ -534,7 +536,7 @@ class NaivePlot:
         """Make string representation
         """
         plot = list()
-        for row in xrange(self._rows):
+        for _ in xrange(self._rows):
             plot.append([self._bg] * self._cols)
 
         # TODO: these should be optional
@@ -566,5 +568,6 @@ class NaivePlot:
 if __name__ == '__main__':
     # doc tests below
     import doctest
-    doctest.testmod()
+    ret = doctest.testmod()
+    print "%s tests of %s OK" % (ret.attempted-ret.failed, ret.attempted)
     print "Tests done."
