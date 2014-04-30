@@ -2,99 +2,107 @@
 Where is the intersection between two parametric curves?
 """
 
-from naiveplot import ParaFunc, NaivePlot, Curve
+from naiveplot import ParaFunc, NaivePlot, Curve, Rectangle, Line, Point
+from math import ceil
+try:
+    _xrange = xrange
+except NameError:
+    _xrange = range
 
+def flt_range(start, stop=None, step=1.0):
+    """
+    Generates a set of floating point values over the range [start, stop)
+    with step size step, inspired of http://code.activestate.com/recipes/66472
+    """
+
+    if stop is None:
+        for x in _xrange(int(ceil(start/step))):
+            yield x*step
+    else:
+        indices = (i for i in _xrange(0, int(ceil((stop-start)/step))))
+        # yield results
+        for i in indices:
+            yield start + step*i
+    return
 
 class ParaSolver(object):
     """The class that will find the intersection
     """
 
-    def __init__(self, c1, c2):
-        """Just a constructor
+    def __init__(self, f, g):
+        """Just a constructor, given f(t) and g(s)
         """
-        self.c1 = c1
-        self.c2 = c2
+        self.f = f
+        self.g = g
+        self.fboxes = list()
+        self.gboxes = list()
+        self.overlappers = None
         return
 
-    def get_line(self, xmin, ymin, xmax, ymax):
-        """Get tuple with (slope, yintercept)
+    def _seed(self, vals, container, func):
+        """Compute points on f or g for values of t or s
         """
-        slope = (ymax - ymin)/(xmax - xmin)
-        intercept = (ymin+ymax)/2 - slope*(xmin+xmax)/2
-        return (slope, intercept)
-
-    def has_intersection(self, pair1, pair2):
-        """True if the lines between points in pair1 and pair2 cross
-        """
-        #TODO: implement me
-        print "%s %s" % (pair1, pair2)
+        for idx in xrange(len(vals)-1):
+            container.append(Rectangle(func(vals[idx]), func(vals[idx+1])))
         return
 
-    def get_delta_square(self, t1, t2):
+    def seed_f(self, tvals):
+        """Compute points on f for values of t
+        """
+        self._seed(tvals, self.fboxes, self.f)
+
+    def seed_g(self, svals):
+        """Compute points on g for values of s
+        """
+        self._seed(svals, self.gboxes, self.g)
+
+    def get_delta_square(self, t, s):
         """Get the distance between two points, squared
         """
-        p1 = self.c1(t1)
-        p2 = self.c2(t2)
+        p1 = self.f(t)
+        p2 = self.g(s)
         return (p1.x-p2.x)**2 + (p1.y-p2.y)**2
 
-    def iterate(self, tmin, tmax, smin, smax):
+    def overlap(self):
+        """Try to figure out if there is an overlap
+        """
+        for fbox in self.fboxes:
+            for gbox in self.gboxes:
+                if fbox.overlap(gbox):
+                    self.overlappers = [fbox, gbox]
+                    return True
+        return False
+
+
+    def iterate(self, tmin, tmax, tstepsize, smin, smax, sstepsize):
         """True if the curves seems to have an intersection
         """
-        # TODO: store old values
-        values = list()
-        values.append(((tmin+tmax)/2, smin))
-        values.append(((tmin+tmax)/2, smax))
-        values.append(((tmin+tmax)/2, (smin+smax)/2))
-        values.append((tmin, (smin+smax)/2))
-        values.append((tmax, (smin+smax)/2))
-
-        deltas = [self.get_delta_square(v[0], v[1]) for v in values]
-        idx = deltas.index(min(deltas))
-
-        # TODO: find the smallest delta with intersection
-        _ = self.get_line(tmin, tmax, smin, smax)
-
-        return values[idx]
+        self.seed_f(list(flt_range(tmin, tmax, tstepsize)))
+        self.seed_g(list(flt_range(smin, smax, sstepsize)))
+        return self.overlap()
 
 
 if __name__ == '__main__':
-    from math import pi
-    from demo import heartx, hearty, curvex, curvey
 
-    # the curves
-    pf1 = ParaFunc(heartx, hearty)
-    pf2 = ParaFunc(curvex, curvey)
-    curve1 = Curve(pf1, -pi, pi, 0.01)
-    curve2 = Curve(pf2, -20, 20, 0.01)
+    f = Line(Point(0, 0), Point(6, 10))
+    g = Line(Point(1, 6), Point(3, 2))
+    p = ParaSolver(f, g)
 
-    # starting values for later
-    points = list()
-    (my_tmin, my_tmax) = (pi/4, pi/2)
-    points.append(pf1(my_tmin))
-    points.append(pf1(my_tmax))
-    (my_smin, my_smax) = (9.22, 13.88)
-    points.append(pf2(my_smin))
-    points.append(pf2(my_smax))
+    print "Overlap? %s" % p.overlap()
 
-    # get an overview of the problem
-    plot = NaivePlot()
-    plot.add_curve(curve1, 'o')
-    plot.add_curve(curve2, 'x')
+    p.iterate(0.0, 1.0, 0.2490, 0.0, 1.0, 0.2490)
+    print "Overlap? %s" % p.overlap()
 
-    # enter parasolver
-    ps = ParaSolver(pf1, pf2)
-    (s, t) = ps.iterate(my_tmin, my_tmax, my_smin, my_smax)
-    ipoints = list()
-    ipoints.append(pf1(s))
-    ipoints.append(pf2(t))
-
-    for point in points:
-        plot.add_curve(point, 'A', 'white')
-    for point in ipoints:
-        plot.add_curve(point, 'B', 'red')
-
-    (s, t) = ps.iterate(my_tmin, my_tmax, my_smin, my_smax)
-
-    plot.zoom(-1, 17, -1, 17)
+    plot = NaivePlot(60, 20, -1, 7, -1, 11)
+    plot.add_curve(Curve(f, 0.0, 1.0, 0.001), '/', 'white')
+    plot.add_curve(Curve(g, 0.0, 1.0, 0.001), '\\', 'white')
+    plot.add_curve(Curve(p.overlappers[0], 0.0, 1.0, 0.001), 'f', 'red')
+    plot.add_curve(Curve(p.overlappers[1], 0.0, 1.0, 0.001), 'g', 'blue')
 
     print plot
+
+    plot.zoom(1, 4, 2, 6)
+
+    print plot
+
+
