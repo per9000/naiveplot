@@ -34,27 +34,32 @@ class ParaSolver(object):
         """
         self.f = f
         self.g = g
+        self.fvals = list()
+        self.gvals = list()
         self.fboxes = list()
         self.gboxes = list()
         self.overlappers = None
         return
 
-    def _seed(self, vals, container, func):
+    def _seed(self, vals, container, func, funcvals):
         """Compute points on f or g for values of t or s
         """
         for idx in xrange(len(vals)-1):
-            container.append(Rectangle(func(vals[idx]), func(vals[idx+1])))
+            print "seed %s" % vals[idx]
+            funcvals.append((vals[idx], func(vals[idx])))
+            funcvals.append((vals[idx+1], func(vals[idx+1])))
+            container.append(Rectangle(funcvals[-2][1], funcvals[-1][1]))
         return
 
-    def seed_f(self, tvals):
+    def seed_f(self, vals):
         """Compute points on f for values of t
         """
-        self._seed(tvals, self.fboxes, self.f)
+        self._seed(vals, self.fboxes, self.f, self.fvals)
 
-    def seed_g(self, svals):
+    def seed_g(self, vals):
         """Compute points on g for values of s
         """
-        self._seed(svals, self.gboxes, self.g)
+        self._seed(vals, self.gboxes, self.g, self.gvals)
 
     def get_delta_square(self, t, s):
         """Get the distance between two points, squared
@@ -66,20 +71,104 @@ class ParaSolver(object):
     def overlap(self):
         """Try to figure out if there is an overlap
         """
+        self.overlappers = list()
         for fbox in self.fboxes:
             for gbox in self.gboxes:
+
+                # TODO: remove illustration
+                tmp = NaivePlot(60, 20, -1, 7, -1, 11)
+                cf = Curve(self.f, 0.0, 1.0, 0.001)
+                cg = Curve(self.g, 0.0, 1.0, 0.001)
+                cfb = Curve(fbox, 0.0, 1.0, 0.001)
+                cgb = Curve(gbox, 0.0, 1.0, 0.001)
+                tmp.add_curve(cf, '/', 'white')
+                tmp.add_curve(cg, '\\', 'white')
+                tmp.add_curve(cfb, 'f', 'red')
+                tmp.add_curve(cgb, 'g', 'blue')
+                tmp.fit_curve(cf)
+                tmp.fit_curve(cg)
+                print tmp
+
                 if fbox.overlap(gbox):
-                    self.overlappers = [fbox, gbox]
-                    return True
-        return False
+                    self.overlappers.append((fbox, gbox))
+        return len(self.overlappers) > 0
 
-
-    def iterate(self, tmin, tmax, tstepsize, smin, smax, sstepsize):
+    def seed(self, smin, smax, sstepsize, tmin, tmax, tstepsize):
         """True if the curves seems to have an intersection
         """
-        self.seed_f(list(flt_range(tmin, tmax, tstepsize)))
-        self.seed_g(list(flt_range(smin, smax, sstepsize)))
+        self.seed_f(list(flt_range(smin, smax, sstepsize)))
+        self.seed_g(list(flt_range(tmin, tmax, tstepsize)))
         return self.overlap()
+
+    def _find_point(self, pnt, container, eps):
+        """Find a value that was close to a point
+        """
+        print "Look for %s, in" % pnt,
+        for items in container:
+            print "{%s - %s}" % (items[0], items[1]),
+        print eps
+        eps = eps ** 2
+        for (val, p) in container:
+            print val,
+            print p
+            if pnt.distance_square(p) < eps:
+                print "   found val %s" % val
+                return val
+        return
+
+    def find_s(self, pnt, eps = 0.001):
+        """Find the s value that corresponts to point pnt
+        """
+        return self._find_point(pnt, self.fvals, eps)
+
+    def find_t(self, pnt, eps = 0.001):
+        """Find the t value that corresponts to point pnt
+        """
+        return self._find_point(pnt, self.gvals, eps)
+
+    def iterate(self):
+        """Split all overlapping boxes in half and
+        """
+        new_overlappers = list()
+
+        print "iterate"
+
+        print self.f
+        print self.g
+        print self.fvals
+        print self.gvals
+        print self.fboxes
+        print self.gboxes
+        print self.overlappers
+
+        for (fbox, gbox) in self.overlappers:
+            print "fbox %s overlap with gbox %s" % (fbox, gbox)
+
+            print "find s values using f"
+            s1 = self.find_s(fbox.low())
+            s3 = self.find_s(fbox.top())
+            s2 = (s1+s3)/2
+            self.seed_f([s2])
+            f2 = self.fvals[-1]
+
+            print "find t values using g"
+            t1 = self.find_t(gbox.low())
+            t3 = self.find_t(gbox.top())
+            t2 = (t1+t3)/2
+            self.seed_g([t2])
+            g2 = self.gvals[-1]
+
+            print "    (new s & t = %s & %s)" % (s2, t2)
+
+            for fb in (Rectangle(fbox.low(), f2),
+                       Rectangle(f2, fbox.high())):
+                for gb in (Rectangle(gbox.low(), g2),
+                           Rectangle(g2, gbox.high)):
+                    if fb.overlap(gb):
+                        print " new overlap of %s and %s " % (fb, gb)
+                        new_overlappers.append((fb, gb))
+        self.overlappers = new_overlappers
+        return
 
 
 if __name__ == '__main__':
@@ -90,19 +179,21 @@ if __name__ == '__main__':
 
     print "Overlap? %s" % p.overlap()
 
-    p.iterate(0.0, 1.0, 0.2490, 0.0, 1.0, 0.2490)
-    print "Overlap? %s" % p.overlap()
+    olap = p.seed(0.0, 1.0, 0.2, 0.0, 1.0, 0.2)
+    print "Overlap? %s" % olap
 
     plot = NaivePlot(60, 20, -1, 7, -1, 11)
     plot.add_curve(Curve(f, 0.0, 1.0, 0.001), '/', 'white')
     plot.add_curve(Curve(g, 0.0, 1.0, 0.001), '\\', 'white')
-    plot.add_curve(Curve(p.overlappers[0], 0.0, 1.0, 0.001), 'f', 'red')
-    plot.add_curve(Curve(p.overlappers[1], 0.0, 1.0, 0.001), 'g', 'blue')
 
-    print plot
+    for _ in xrange(1):
 
-    plot.zoom(1, 4, 2, 6)
+        for (rbox, bbox) in p.overlappers:
+            tmp_plot = NaivePlot(60, 20, -1, 7, -1, 11)
+            tmp_plot.add_curve(Curve(f, 0.0, 1.0, 0.001), '/', 'white')
+            tmp_plot.add_curve(Curve(g, 0.0, 1.0, 0.001), '\\', 'white')
+            tmp_plot.add_curve(Curve(rbox, 0.0, 1.0, 0.001), 'f', 'red')
+            tmp_plot.add_curve(Curve(bbox, 0.0, 1.0, 0.001), 'g', 'blue')
+            print tmp_plot
 
-    print plot
-
-
+            p.iterate()

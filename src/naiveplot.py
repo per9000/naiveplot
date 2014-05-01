@@ -64,6 +64,11 @@ class Point(object):
         """
         return str((self.x, self.y))
 
+    def distance_square(self, other):
+        """Get the distance squared of another point
+        """
+        return (self.x - other.x)**2 + (self.y - other.y)**2
+
 
 class ParaFunc(object):
     """Parametric Function.
@@ -164,6 +169,16 @@ class Rectangle(ParaFunc):
         self._top = Line(self._B, D)
         self._left = Line(D, self._A)
         return
+
+    def low(self):
+        """Get a copy of the low left corner
+        """
+        return Point(self._A.x, self._A.y)
+
+    def top(self):
+        """Get a copy of the top right corner
+        """
+        return Point(self._B.x, self._B.y)
 
     def __cmp__(self, other):
         """Compare
